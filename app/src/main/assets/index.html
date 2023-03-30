@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Manager</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Task manager</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+
+      </button>
+    </nav>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card mb-4">
+            <div class="card-body">
+              <form id="addTaskForm">
+                <div class="form-group">
+                  <label for="newTask">New Task</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="newTask"
+                    placeholder="Enter task details"
+                  />
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  Add New Task
+                </button>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <table class="table" id="taskTable">
+                <thead>
+                  <tr>
+                    <th scope="col">Task Description</th>
+                    <th scope="col">Date Created</th>
+                    <th scope="col">Completed</th>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript code to handle form submission, add new task to table, and delete tasks from table -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // load saved tasks from localStorage
+        var savedTasks = JSON.parse(localStorage.getItem("tasks"));
+        if (savedTasks !== null) {
+          $.each(savedTasks, function (index, task) {
+            var newRow =
+              "<tr><td>" +
+              task.name +
+              "</td><td>" +
+              task.date +
+              "</td><td><input type='checkbox'" +
+              (task.completed ? " checked" : "") +
+              "></td><td><button class='btn btn-danger btn-sm delete-task'>Delete</button></td></tr>";
+            $("#taskTable tbody").append(newRow);
+          });
+        }
+
+        // add task
+        $("#addTaskForm").submit(function (event) {
+          event.preventDefault(); // prevent the form from submitting and reloading the page
+          var taskName = $("#newTask").val(); // get the task name from the form input
+          var dateCreated = new Date().toISOString().slice(0, 10); // get the current date in ISO format (YYYY-MM-DD)
+          var newRow =
+            "<tr><td>" +
+            taskName +
+            "</td><td>" +
+            dateCreated +
+            "</td><td><input type='checkbox'></td><td><button class='btn btn-danger btn-sm delete-task'>Delete</button></td></tr>"; // create a new row with the task name, date created, checkbox, and delete button
+          $("#taskTable tbody").append(newRow); // add the new row to the table body
+          $("#newTask").val(""); // clear the form input
+
+          // save the task data to localStorage
+          var tasks = getTasksFromTable();
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        });
+
+        // read task
+        function getTasksFromTable() {
+          var tasks = [];
+          $("#taskTable tbody tr").each(function () {
+            var task = {
+              name: $(this).find("td:eq(0)").text(),
+              date: $(this).find("td:eq(1)").text(),
+              completed: $(this).find("input[type='checkbox']").is(":checked"),
+            };
+            tasks.push(task);
+          });
+          return tasks;
+        }
+
+        // update task
+        $(document).on("change", "input[type='checkbox']", function () {
+          var tasks = getTasksFromTable();
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        });
+
+        // delete task
+        $(document).on("click", ".delete-task", function () {
+          $(this).closest("tr").remove(); // remove the closest <tr> element (i.e. the entire row) from the table when the delete button is clicked
+
+          // save the task data to localStorage
+          var tasks = getTasksFromTable();
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        });
+
+        // clear all tasks
+        $("#clearTasksButton").click(function () {
+          $("#taskTable tbody").empty(); // remove all rows from the table
+          localStorage.removeItem("tasks"); // remove the tasks from localStorage
+        });
+      });
+    </script>
+
+    <!-- Підключення скриптів Bootstrap та jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
